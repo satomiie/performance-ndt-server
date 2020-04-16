@@ -1,4 +1,0 @@
-package platformx
-
-func maybeEmitWarning() {
-}
