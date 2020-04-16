@@ -8,7 +8,7 @@ check_docker_container=$(docker ps -a --no-trunc --filter name=^/${container_nam
 clear
 
 echo "#############################################"
-echo "### Interxion Performance Testing Service ###"
+echo "###      Performance Testing Service      ###"
 echo "#############################################"
 echo
 

@@ -42,26 +42,26 @@
            line: net.ipv4.ip_forward=1
     - git:
          repo: 'https://github.com/satomiie/performance-ndt-server.git'
-         dest: "{{ path }}"
+         dest: "{{ path_service }}"
          clone: yes
          force: yes
 
     - git:
          repo: 'https://github.com/m-lab/ndt-server.git'
-         dest: "{{ path2 }}"
+         dest: "{{ path_ndt }}"
          clone: yes
          force: yes
          update: yes
     - name: Create datadir folder
       file:
-          path: "{{ path2 }}/datadir"
+          path: "{{ path_ndt }}/datadir"
           state: directory
           owner: root
           group: root
           mode: 0775
     - name: Create Certs folder
       file:
-          path: "{{ path2 }}/certs"
+          path: "{{ path_ndt }}/certs"
           state: directory
           owner: root
           group: root
@@ -69,11 +69,11 @@
     - name: Generate Self-signed certificates
       command: ./gen_local_test_certs.bash
       args:
-          chdir: "{{ path2 }}"
+          chdir: "{{ path_ndt }}"
     - name: build the docker container
       command: docker build . -t ndt-server
       args:
-          chdir: "{{ path2 }}"
+          chdir: "{{ path_ndt }}"
     - name: Copy service to startup
       copy:
         src: /opt/performance-ndt-server/intx-perfserver.service
@@ -84,7 +84,7 @@
     - name: Copy script
       copy:
         src: /opt/performance-ndt-server/ndt-server-service.sh
-        dest: /opt/ndt-server/
+        dest: "{{ path_ndt }}"
         remote_src: yes
         owner: root
         group: root

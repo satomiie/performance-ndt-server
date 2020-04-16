@@ -1,5 +1,5 @@
 [Unit]
-Description=Interxion Performance Testing Service
+Description=Performance Testing Service
 After=syslog.target network.target docker.service
 
 [Service]
