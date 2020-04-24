@@ -17,7 +17,7 @@
         name: https://ftp.tu-chemnitz.de/pub/linux/dag/redhat/el7/en/x86_64/rpmforge/RPMS/iperf-2.0.4-1.el7.rf.x86_64.rpm
         state: present
 
-    - name:  Install
+    - name:  Install Packages
       yum:
         state: present
         name:
@@ -66,34 +66,26 @@
           owner: root
           group: root
           mode: 0775
-<<<<<<< HEAD
 
     - name : Check certificates
       stat:
         path: '{{ path_ndt}}/certs/cert.pem'
       register: cert_file
-=======
->>>>>>> 95f538e4a892e04baec230f275968b9e8a0c6b36
+
     - name: Generate Self-signed certificates
       command: ./gen_local_test_certs.bash
       args:
           chdir: "{{ path_ndt }}"
-<<<<<<< HEAD
       when: not cert_file.stat.exists
 
-=======
->>>>>>> 95f538e4a892e04baec230f275968b9e8a0c6b36
+
     - name: build the docker container
       command: docker build . -t ndt-server
       args:
           chdir: "{{ path_ndt }}"
     - name: Copy service to startup
       copy:
-<<<<<<< HEAD
         src: /opt/performance-ndt-server/perfserver.service
-=======
-        src: /opt/performance-ndt-server/intx-perfserver.service
->>>>>>> 95f538e4a892e04baec230f275968b9e8a0c6b36
         dest: /etc/systemd/system/
         remote_src: yes
         owner: root
@@ -106,12 +98,10 @@
         owner: root
         group: root
         mode: 0755
+
     - name: Enable Service
       systemd:
-<<<<<<< HEAD
         name: perfserver
-=======
-        name: intx-perfserver
->>>>>>> 95f538e4a892e04baec230f275968b9e8a0c6b36
         enabled: yes
         state: started
+        daemon_reload: yes
