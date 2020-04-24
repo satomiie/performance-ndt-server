@@ -1,0 +1,103 @@
+-
+  name: Install Git, yum-utils and Docker
+  hosts: all
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Add repository
+      yum_repository:
+        name: docker
+        description: Docker Repo
+        file: docker-ce
+        baseurl: https://download.docker.com/linux/centos/7/$basearch/stable
+        enabled: yes
+        gpgcheck: no
+    - name : Install iperf
+      yum:
+        name: https://ftp.tu-chemnitz.de/pub/linux/dag/redhat/el7/en/x86_64/rpmforge/RPMS/iperf-2.0.4-1.el7.rf.x86_64.rpm
+        state: present
+
+    - name:  Install
+      yum:
+        state: present
+        name:
+          - git
+          - yum-utils
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+    - name: Disable Firewall
+      systemd:
+        name: firewalld
+        enabled: no
+        state: stopped
+    - name: Enable docker
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+    - name: Add Netforwarding enable
+      lineinfile:
+           path: /etc/sysctl.conf
+           line: net.ipv4.ip_forward=1
+    - git:
+         repo: 'https://github.com/satomiie/performance-ndt-server.git'
+         dest: "{{ path_service }}"
+         clone: yes
+         force: yes
+
+    - git:
+         repo: 'https://github.com/m-lab/ndt-server.git'
+         dest: "{{ path_ndt }}"
+         clone: yes
+         force: yes
+         update: yes
+    - name: Create datadir folder
+      file:
+          path: "{{ path_ndt }}/datadir"
+          state: directory
+          owner: root
+          group: root
+          mode: 0775
+    - name: Create Certs folder
+      file:
+          path: "{{ path_ndt }}/certs"
+          state: directory
+          owner: root
+          group: root
+          mode: 0775
+
+    - name : Check certificates
+      stat:
+        path: '{{ path_ndt}}/certs/cert.pem'
+      register: cert_file
+    - name: Generate Self-signed certificates
+      command: ./gen_local_test_certs.bash
+      args:
+          chdir: "{{ path_ndt }}"
+      when: not cert_file.stat.exists
+
+    - name: build the docker container
+      command: docker build . -t ndt-server
+      args:
+          chdir: "{{ path_ndt }}"
+    - name: Copy service to startup
+      copy:
+        src: /opt/performance-ndt-server/perfserver.service
+        dest: /etc/systemd/system/
+        remote_src: yes
+        owner: root
+        group: root
+    - name: Copy script
+      copy:
+        src: /opt/performance-ndt-server/ndt-server-service.sh
+        dest: "{{ path_ndt }}"
+        remote_src: yes
+        owner: root
+        group: root
+        mode: 0755
+    - name: Enable Service
+      systemd:
+        name: perfserver
+        enabled: yes
+        state: started
