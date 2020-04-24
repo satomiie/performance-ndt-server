@@ -1,0 +1,14 @@
+[Unit]
+Description=Performance Testing Service
+After=syslog.target network.target docker.service
+
+[Service]
+WorkingDirectory=/opt/ndt-server
+Type=oneshot
+ExecStart=/opt/ndt-server/ndt-server-service.sh start
+ExecStop=/opt/ndt-server/ndt-server-service.sh stop
+RemainAfterExit=true
+StandardOutput=journal
+
+[Install]
+WantedBy=multi-user.target
