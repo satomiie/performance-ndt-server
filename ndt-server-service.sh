@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ### Variables ###
-container_name="ndtserver"
+container_name="ndt-server"
 host_ip="0.0.0.0"
 check_docker_container=$(docker ps -a --no-trunc --filter name=^/${container_name}\$ | egrep -v 'CONTAINER')
 
@@ -69,13 +69,13 @@ stop()
 
   else
       echo "[INFO]    - Container '${container_name}' not running, skipping stop..."
-  
+
   fi
-  
+
   echo; echo "[INFO]    - Stopping iPerf Daemon"
   ps -ef | grep "/bin/iperf" | egrep -v grep | awk '{print "kill -9 "$2}'|sh
-  check_iperf_daemon=$(ps -ef | grep '/bin/iperf' | egrep -v grep) 
-  
+  check_iperf_daemon=$(ps -ef | grep '/bin/iperf' | egrep -v grep)
+
   [[ -z "${check_iperf_daemon}" ]] || { echo "[ERROR]   - iPerf stop failed! Please verify. Exiting..."; echo; sleep 2; exit 1; }
       echo "[SUCCESS] - iPerf Daemon Stopped!"
       sleep 2; echo; exit 0

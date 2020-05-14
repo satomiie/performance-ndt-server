@@ -29,8 +29,13 @@
     - name: Disable Firewall
       systemd:
         name: firewalld
-        enabled: no
         state: stopped
+        enabled: no
+    - name: Disable SELinux
+      replace:
+        path: /etc/selinux/config
+        regexp: 'SELINUX=enforcing'
+        replace: 'SELINUX=disabled'
     - name: Enable docker
       systemd:
         name: docker
@@ -85,23 +90,28 @@
           chdir: "{{ path_ndt }}"
     - name: Copy service to startup
       copy:
-        src: /opt/performance-ndt-server/perfserver.service
+        src: "{{ path_service }}/perfserver.service"
         dest: /etc/systemd/system/
         remote_src: yes
         owner: root
         group: root
     - name: Copy script
       copy:
-        src: /opt/performance-ndt-server/ndt-server-service.sh
+        src: "{{ path_service }}/ndt-server-service.sh"
         dest: "{{ path_ndt }}"
         remote_src: yes
         owner: root
         group: root
         mode: 0755
-
-    - name: Enable Service
+    - name: Reload Daemon
       systemd:
-        name: perfserver
-        enabled: yes
-        state: started
         daemon_reload: yes
+#    - name: Enable Service
+#      systemd:
+#        name: perfserver
+#        enabled: yes
+#        state: started
+    - name: Clean artifact path
+      file:
+        state: absent
+        path: "{{ path_service }}"
