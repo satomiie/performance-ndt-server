@@ -103,14 +103,12 @@
         owner: root
         group: root
         mode: 0755
-    - name: Reload Daemon
+    - name: Enable Service
       systemd:
+        name: perfserver
+        enabled: yes
+        state: started
         daemon_reload: yes
-#    - name: Enable Service
-#      systemd:
-#        name: perfserver
-#        enabled: yes
-#        state: started
     - name: Clean artifact path
       file:
         state: absent
