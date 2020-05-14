@@ -1,10 +1,10 @@
 -
-  name: Install Git, yum-utils and Docker
+  name: Install and configure iperf with ndt-server
   hosts: all
   become: yes
   become_method: sudo
   tasks:
-    - name: Add repository
+    - name: Add Docker repository
       yum_repository:
         name: docker
         description: Docker Repo
@@ -16,8 +16,7 @@
       yum:
         name: https://ftp.tu-chemnitz.de/pub/linux/dag/redhat/el7/en/x86_64/rpmforge/RPMS/iperf-2.0.4-1.el7.rf.x86_64.rpm
         state: present
-
-    - name:  Install Packages
+    - name:  Install Packages for ndt-server
       yum:
         state: present
         name:
@@ -45,19 +44,21 @@
       lineinfile:
            path: /etc/sysctl.conf
            line: net.ipv4.ip_forward=1
-    - git:
+    - name: Add git repository for services
+      git:
          repo: 'https://github.com/satomiie/performance-ndt-server.git'
          dest: "{{ path_service }}"
          clone: yes
          force: yes
 
-    - git:
+    - name: Add git repository for ndt-server
+      git:
          repo: 'https://github.com/m-lab/ndt-server.git'
          dest: "{{ path_ndt }}"
          clone: yes
          force: yes
          update: yes
-    - name: Create datadir folder
+    - name: Create datadir folder for certificates
       file:
           path: "{{ path_ndt }}/datadir"
           state: directory
@@ -71,7 +72,11 @@
           owner: root
           group: root
           mode: 0775
-
+    - name: Change certificate validity to 10 years
+      replace:
+          path: "{{ path_ndt }}/gen_local_test_certs.bash"
+          regexp: '-days 2'
+          replace: '-days 36500'
     - name : Check certificates
       stat:
         path: '{{ path_ndt}}/certs/cert.pem'
@@ -90,14 +95,14 @@
           chdir: "{{ path_ndt }}"
     - name: Copy service to startup
       copy:
-        src: "{{ path_service }}/perfserver.service"
+        src: "{{ path_service }}/Service/perfserver.service"
         dest: /etc/systemd/system/
         remote_src: yes
         owner: root
         group: root
     - name: Copy script
       copy:
-        src: "{{ path_service }}/ndt-server-service.sh"
+        src: "{{ path_service }}/Service/ndt-server-service.sh"
         dest: "{{ path_ndt }}"
         remote_src: yes
         owner: root
