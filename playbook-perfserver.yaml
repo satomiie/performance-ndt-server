@@ -93,6 +93,25 @@
       command: docker build . -t ndt-server
       args:
           chdir: "{{ path_ndt }}"
+    - name: Edit Script JS for AverageRoundTrip
+      blockinfile:
+        path: /opt/ndt-server/html/script.js
+        insertafter: 'if (simulate) return 0 '
+        block: |
+           var countRTT = parseInt(testNDT().getNDTvar('CountRTT'), 10);
+           var sumRTT = parseInt(testNDT().getNDTvar('SumRTT'), 10);
+    - name: Change Packetloss variable
+      replace:
+        path: /opt/ndt-server/html/script.js
+        after: 'parseFloat(testNDT().getNDTvar('
+        before: 'packetLoss'
+        regexp: 'loss'
+        replace: 'TCPInfo.Lost'
+    - name: Print Jitter value
+      replace:
+        path: /opt/ndt-server/html/script.js
+        regexp: printNumberValue(printJitter(true))'
+        replace: 'printJitter(true)'
     - name: Copy service to startup
       copy:
         src: "{{ path_service }}/Service/perfserver.service"
