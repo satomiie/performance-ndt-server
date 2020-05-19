@@ -87,31 +87,49 @@
       args:
           chdir: "{{ path_ndt }}"
       when: not cert_file.stat.exists
-
-
+    - name: Remove lines for Average variable
+      lineinfile:
+          path: "{{ path_ndt }}html/script.js"
+          regexp: "return parseFloat\\(testNDT\\(\\).getNDTvar\\('avgrtt'\\)\\);"
+          state: absent
+    - name: Check if script.js is already configured
+      shell: grep "var countRTT"  {{ path_ndt }}html/script.js
+      register: average
+      check_mode: no
+      failed_when: "average.rc == 2"
+    - name: Change AverageRoundTrip function
+      lineinfile:
+          path: "{{ path_ndt }}html/script.js"
+          insertafter: 'function averageRoundTrip\(\) \{'
+          line: " {{ item }} "
+          state: present
+          firstmatch: yes
+      with_items:
+          - "return sumRTT / countRTT;"
+          - "var sumRTT = parseInt(testNDT().getNDTvar('SumRTT'), 10);"
+          - "var countRTT = parseInt(testNDT().getNDTvar('CountRTT'), 10);"
+          - "if (simulate) return 0;"
+      when: average.stdout == ""
+    - name: Change Packetloss variable
+      replace:
+          path: "{{ path_ndt }}html/script.js"
+          regexp: "parseFloat\\(testNDT\\(\\).getNDTvar\\('loss'\\)\\)"
+          replace: "parseFloat(testNDT().getNDTvar('TCPInfo.lost'))"
+    - name: Print Jitter value
+      replace:
+        path: "{{ path_ndt }}html/script.js"
+        regexp: "printNumberValue\\(printJitter\\(true\\)\\)"
+        replace: "printJitter(true)"
+    - name: Remove condition on Average function
+      replace:
+        path: "{{ path_ndt }}html/script.js"
+        after: "return sumRTT / countRTT;"
+        regexp: "if \\(simulate\\) return 0;"
+        replace: ''
     - name: build the docker container
       command: docker build . -t ndt-server
       args:
           chdir: "{{ path_ndt }}"
-    - name: Edit Script JS for AverageRoundTrip
-      blockinfile:
-        path: /opt/ndt-server/html/script.js
-        insertafter: 'if (simulate) return 0 '
-        block: |
-           var countRTT = parseInt(testNDT().getNDTvar('CountRTT'), 10);
-           var sumRTT = parseInt(testNDT().getNDTvar('SumRTT'), 10);
-    - name: Change Packetloss variable
-      replace:
-        path: /opt/ndt-server/html/script.js
-        after: 'parseFloat(testNDT().getNDTvar('
-        before: 'packetLoss'
-        regexp: 'loss'
-        replace: 'TCPInfo.Lost'
-    - name: Print Jitter value
-      replace:
-        path: /opt/ndt-server/html/script.js
-        regexp: printNumberValue(printJitter(true))'
-        replace: 'printJitter(true)'
     - name: Copy service to startup
       copy:
         src: "{{ path_service }}/Service/perfserver.service"
