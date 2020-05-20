@@ -1,4 +1,3 @@
-performance ndt-server
 This repository contains an Ansible playbook that install and configure a ndt5/ndt7 server written in Go and iPerf listening on port TCP 5001
 
 Clone Git Repository to your Ansible Controller
