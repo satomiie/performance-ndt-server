@@ -12,8 +12,8 @@ Run playbook using the command : "ansible-playbook playbook-perfserver.yaml -k -
 In order to access on services, please use following links:
 
 ndt5+wss: https://localhost:3010/static/widget.html
+
 ndt7: https://localhost/static/ndt7.html
-prometheus: http://localhost:9090/metrics
 
 Replace localhost with the IP of the server to access them externally.
 

@@ -24,7 +24,7 @@ start()
   if [[ -z "${check_docker_container}"  ]]; then
       echo "[INFO]    - Starting '${container_name}' container..."
 
-      docker run --rm -d --name ${container_name} --network=host --privileged \
+      docker run  -d --name ${container_name} --network=host --privileged \
              --volume `pwd`/certs:/certs:ro         \
              --volume `pwd`/datadir:/var/spool/ndt  \
              --volume `pwd`/var-local:/var/local    \
